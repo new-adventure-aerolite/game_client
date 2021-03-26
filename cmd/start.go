@@ -19,6 +19,8 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+
+	"github.com/new-adventure-aerolite/game-client/pkg/client"
 )
 
 // startCmd represents the start command
@@ -33,6 +35,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("start called")
+		client.Start()
 	},
 }
 
