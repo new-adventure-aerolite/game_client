@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/gookit/color"
+	"github.com/gookit/gcli/v3/interact"
 )
 
 type SessionView struct {
@@ -67,16 +67,11 @@ func VerifyEmailFormat(email string) bool {
 }
 
 func main() {
-	// style := color.New(color.FgWhite, color.BgBlack, color.OpBold)
-	// style.Println("custom color style")
-	cyan := color.FgLightCyan.Render
-	blue := color.FgLightBlue.Render
-	magenta := color.FgLightMagenta.Render
 	var emailAddress = ""
 	var err error
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		fmt.Printf("%s", magenta("Please Input your email address: "))
+		color.Green.Printf("Please Input your email address: ")
 		// ReadString will block until the delimiter is entered
 		emailAddress, err = reader.ReadString('\n')
 		if err != nil {
@@ -97,7 +92,7 @@ func main() {
 	// calling load session api
 	loadSession := &Session{
 		UID:           "1",
-		HeroName:      "",
+		HeroName:      "tq",
 		LiveHeroBlood: 3,
 		LiveBossBlood: 4,
 		CurrentLevel:  5,
@@ -122,37 +117,42 @@ func main() {
 					DefensePower: 3,
 					Blood:        4,
 				},
+				{
+					Name:         "hero3",
+					Details:      "3",
+					AttackPower:  2,
+					DefensePower: 3,
+					Blood:        4,
+				},
 			},
 		}
-		fmt.Printf("%s\n", magenta("You can choose one Hero from below list:"))
+		fmt.Println("----------------------------------------------------------")
+		color.Info.Println("You can choose one Hero from below list:")
+		var heroNameList = make([]string, len(heroList.Heros))
 		for index, hero := range heroList.Heros {
-			fmt.Printf("%s%s %s \n", blue(fmt.Sprintf("%d", index)), blue(")"), cyan(hero.Name))
+			heroNameList[index] = hero.Name
 		}
-		var heroNum int
-		fmt.Scanf("%d", &heroNum)
-		choosenHero := heroList.Heros[heroNum].Name
+		choosenHero := interact.Choice(
+			"Choose Hero(use string slice/array)?",
+			heroNameList,
+			"",
+			false,
+		)
 		// call get hero api
-		fmt.Printf("%s\n", magenta("You have choosen Hero: ", cyan(choosenHero)))
+		color.Info.Println("Your select is:", choosenHero)
 
 	}
+	fmt.Println("----------------------------------------------------------")
 	for {
-		fmt.Printf("%s\n %s %s \n %s %s\n %s %s\n",
-			magenta("Please choose a game action:"), blue("1)"), cyan("Fight"), blue("2)"), cyan("Archive"), blue("3)"), cyan("Quit"))
-		action, err := reader.ReadString('\n')
-		if err != nil {
-			color.Error.Println("An error occured while reading input. Please try again", err)
-			return
-		}
-		actionNum1 := strings.TrimSuffix(action, "\n")
-		actionNum, err := strconv.ParseInt(actionNum1, 10, 32)
-		if err != nil {
-			color.Error.Println("An error occured while parse the input.", err)
-			return
-		}
+		action := interact.SingleSelect(
+			"Your action(use map)?",
+			map[string]string{"1": "Fight", "2": "Archive"},
+			"1",
+		)
 		// call fight api
-		switch actionNum {
-		case 1:
-			fmt.Printf("Calling %s API\n", cyan("Fight"))
+		switch action {
+		case "Fight":
+			color.Info.Println("Calling Fight API")
 			fight := &Fight{
 				GameOver:  false,
 				NextLevel: true,
@@ -161,19 +161,19 @@ func main() {
 				BossBlood: 80,
 			}
 			if fight.BossBlood == 0 {
-				fmt.Println("Enter Next Level")
+				color.Info.Println("Enter Next Level")
 			} else {
 				if fight.HeroBlood == 0 {
 					break
 				}
 			}
-		case 2:
-			fmt.Printf("Calling %s API\n", cyan("Archive"))
-		case 3:
-			fmt.Printf("%s\n", cyan("Quit"))
+		case "Archive":
+			color.Info.Println("Calling Archive API")
+		case "quit":
+			color.Info.Println("quit", "quit")
 			return
 		default:
-			fmt.Printf("Calling %s API\n", cyan("Fight"))
+			color.Info.Println("Calling Fight API")
 		}
 	}
 
