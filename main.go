@@ -4,8 +4,11 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/gookit/color"
 )
 
 type SessionView struct {
@@ -57,26 +60,39 @@ type Level struct {
 	Seesion string
 }
 
+func VerifyEmailFormat(email string) bool {
+	pattern := `^[0-9a-z][_.0-9a-z-]{0,31}@([0-9a-z][0-9a-z-]{0,30}[0-9a-z]\.){1,4}[a-z]{2,4}$`
+	reg := regexp.MustCompile(pattern)
+	return reg.MatchString(email)
+}
+
 func main() {
+	// style := color.New(color.FgWhite, color.BgBlack, color.OpBold)
+	// style.Println("custom color style")
+	cyan := color.FgLightCyan.Render
+	blue := color.FgLightBlue.Render
+	magenta := color.FgLightMagenta.Render
 	var emailAddress = ""
 	var err error
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		fmt.Print("Please Input your email address:")
+		fmt.Printf("%s", magenta("Please Input your email address: "))
 		// ReadString will block until the delimiter is entered
 		emailAddress, err = reader.ReadString('\n')
 		if err != nil {
-			fmt.Println("An error occured while reading input. Please try again", err)
+			color.Error.Println("An error occured while reading input. Please try again", err)
 			return
 		}
 		// remove the delimeter from the string
 		emailAddress = strings.TrimSuffix(emailAddress, "\n")
 		if emailAddress != "" && len(emailAddress) != 0 {
-			fmt.Println(emailAddress)
-			break
-		} else {
-			fmt.Println("Your email address is empty, Please try again", err)
+			// fmt.Println(emailAddress)
+			if VerifyEmailFormat(emailAddress) {
+				break
+			}
+
 		}
+		color.Warn.Println("Your email address is empty or incorrect, Please try again", err)
 	}
 	// calling load session api
 	loadSession := &Session{
@@ -89,7 +105,6 @@ func main() {
 	}
 
 	if loadSession.HeroName == "" && len(loadSession.HeroName) == 0 {
-		fmt.Println("HeroName is empty")
 		// calling  get hero list api
 		heroList := &HeroList{
 			Heros: []Hero{
@@ -109,31 +124,35 @@ func main() {
 				},
 			},
 		}
-		fmt.Println("You can choose one Hero from below list:")
+		fmt.Printf("%s\n", magenta("You can choose one Hero from below list:"))
 		for index, hero := range heroList.Heros {
-			fmt.Printf("%d: %s\n", index, hero.Name)
+			fmt.Printf("%s%s %s \n", blue(fmt.Sprintf("%d", index)), blue(")"), cyan(hero.Name))
 		}
 		var heroNum int
 		fmt.Scanf("%d", &heroNum)
 		choosenHero := heroList.Heros[heroNum].Name
 		// call get hero api
-		fmt.Println("You have choosen Hero:", choosenHero)
+		fmt.Printf("%s\n", magenta("You have choosen Hero: ", cyan(choosenHero)))
 
 	}
 	for {
-		fmt.Print("Please choose a game action:\n 1: Fight \n 2: Archive\n 3: Quit\n")
+		fmt.Printf("%s\n %s %s \n %s %s\n %s %s\n",
+			magenta("Please choose a game action:"), blue("1)"), cyan("Fight"), blue("2)"), cyan("Archive"), blue("3)"), cyan("Quit"))
 		action, err := reader.ReadString('\n')
 		if err != nil {
-			fmt.Println("An error occured while reading input. Please try again", err)
+			color.Error.Println("An error occured while reading input. Please try again", err)
 			return
 		}
 		actionNum1 := strings.TrimSuffix(action, "\n")
 		actionNum, err := strconv.ParseInt(actionNum1, 10, 32)
-		fmt.Println(actionNum)
+		if err != nil {
+			color.Error.Println("An error occured while parse the input.", err)
+			return
+		}
 		// call fight api
 		switch actionNum {
 		case 1:
-			fmt.Println("Calling Fight API: ")
+			fmt.Printf("Calling %s API\n", cyan("Fight"))
 			fight := &Fight{
 				GameOver:  false,
 				NextLevel: true,
@@ -142,19 +161,19 @@ func main() {
 				BossBlood: 80,
 			}
 			if fight.BossBlood == 0 {
-				fmt.Println("Enter next level:")
+				fmt.Println("Enter Next Level")
 			} else {
 				if fight.HeroBlood == 0 {
 					break
 				}
 			}
 		case 2:
-			fmt.Println("Calling Archive API:")
+			fmt.Printf("Calling %s API\n", cyan("Archive"))
 		case 3:
-			fmt.Println("Quit:")
+			fmt.Printf("%s\n", cyan("Quit"))
 			return
 		default:
-			fmt.Println("Calling Fight API:")
+			fmt.Printf("Calling %s API\n", cyan("Fight"))
 		}
 	}
 
