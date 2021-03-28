@@ -7,6 +7,9 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/new-adventure-aerolite/game_client/auth/auth"
+
+	"github.com/go-ini/ini"
 	"github.com/gookit/color"
 	"github.com/gookit/gcli/v3/interact"
 )
@@ -60,6 +63,33 @@ type Level struct {
 	Seesion string
 }
 
+const ConfigFile = ".game/config"
+
+func GetToken() string {
+	homePath := os.Getenv("HOME")
+	configFilePath := fmt.Sprintf("%s/%s", homePath, ConfigFile)
+	cfg, err := ini.Load(configFilePath)
+	if err != nil {
+		color.Error.Printf("Fail to read config file: %v", err)
+		os.Exit(1)
+	}
+	return cfg.Section("").Key("id_token").String()
+}
+
+func SetToken(token string) {
+	homePath := os.Getenv("HOME")
+	configFilePath := fmt.Sprintf("%s/%s", homePath, ConfigFile)
+	cfg, err := ini.Load(configFilePath)
+	if err != nil {
+		color.Error.Printf("Fail to read config file: %v", err)
+		os.Exit(1)
+	}
+
+	cfg.Section("").Key("id_token").SetValue(token)
+	cfg.SaveTo(configFilePath)
+
+}
+
 func VerifyEmailFormat(email string) bool {
 	pattern := `^[0-9a-z][_.0-9a-z-]{0,31}@([0-9a-z][0-9a-z-]{0,30}[0-9a-z]\.){1,4}[a-z]{2,4}$`
 	reg := regexp.MustCompile(pattern)
@@ -89,6 +119,21 @@ func main() {
 		}
 		color.Warn.Println("Your email address is empty or incorrect, Please try again", err)
 	}
+
+	token := GetToken()
+	if token == "" {
+		token, err = auth.RequestToken("116407")
+		if err != nil {
+			color.Error.Println("An error occured while request token!!!!", err)
+		}
+		color.Info.Println(token)
+		SetToken(token)
+	}
+	session, err := auth.LoadSession(token)
+	if err != nil {
+		color.Error.Println("An error occured while load session!!!!", err)
+	}
+	color.Info.Println(session)
 	// calling load session api
 	loadSession := &Session{
 		UID:           "1",
@@ -152,6 +197,7 @@ func main() {
 		// call fight api
 		switch action {
 		case "Fight":
+			color.Info.Println("Your select is:", action)
 			color.Info.Println("Calling Fight API")
 			fight := &Fight{
 				GameOver:  false,
@@ -168,11 +214,14 @@ func main() {
 				}
 			}
 		case "Archive":
+			color.Info.Println("Your select is:", action)
 			color.Info.Println("Calling Archive API")
 		case "quit":
+			color.Info.Println("Your select is:", action)
 			color.Info.Println("quit", "quit")
 			return
 		default:
+			color.Info.Println("Your select is:", action)
 			color.Info.Println("Calling Fight API")
 		}
 	}
