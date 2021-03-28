@@ -209,7 +209,7 @@ func Fight(token string) (*FightResponse, error) {
 func NextLevel(token string) (*NextLevelResponse, error) {
 	url := fmt.Sprintf("%s/session/level", Url)
 	resBody, err := SendRequest("POST", url, token, "")
-	fmt.Println("******", string(resBody))
+
 	if err != nil {
 		return nil, err
 	}
