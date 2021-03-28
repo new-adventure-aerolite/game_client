@@ -3,11 +3,11 @@ package main
 import (
 	"bufio"
 	"fmt"
+
+	"game/auth"
 	"os"
 	"regexp"
 	"strings"
-
-	"github.com/new-adventure-aerolite/game_client/auth/auth"
 
 	"github.com/go-ini/ini"
 	"github.com/gookit/color"
