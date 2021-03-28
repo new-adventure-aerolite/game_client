@@ -4,8 +4,11 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"strconv"
+	"regexp"
 	"strings"
+
+	"github.com/gookit/color"
+	"github.com/gookit/gcli/v3/interact"
 )
 
 type SessionView struct {
@@ -57,31 +60,39 @@ type Level struct {
 	Seesion string
 }
 
+func VerifyEmailFormat(email string) bool {
+	pattern := `^[0-9a-z][_.0-9a-z-]{0,31}@([0-9a-z][0-9a-z-]{0,30}[0-9a-z]\.){1,4}[a-z]{2,4}$`
+	reg := regexp.MustCompile(pattern)
+	return reg.MatchString(email)
+}
+
 func main() {
 	var emailAddress = ""
 	var err error
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		fmt.Print("Please Input your email address:")
+		color.Green.Printf("Please Input your email address: ")
 		// ReadString will block until the delimiter is entered
 		emailAddress, err = reader.ReadString('\n')
 		if err != nil {
-			fmt.Println("An error occured while reading input. Please try again", err)
+			color.Error.Println("An error occured while reading input. Please try again", err)
 			return
 		}
 		// remove the delimeter from the string
 		emailAddress = strings.TrimSuffix(emailAddress, "\n")
 		if emailAddress != "" && len(emailAddress) != 0 {
-			fmt.Println(emailAddress)
-			break
-		} else {
-			fmt.Println("Your email address is empty, Please try again", err)
+			// fmt.Println(emailAddress)
+			if VerifyEmailFormat(emailAddress) {
+				break
+			}
+
 		}
+		color.Warn.Println("Your email address is empty or incorrect, Please try again", err)
 	}
 	// calling load session api
 	loadSession := &Session{
 		UID:           "1",
-		HeroName:      "",
+		HeroName:      "tq",
 		LiveHeroBlood: 3,
 		LiveBossBlood: 4,
 		CurrentLevel:  5,
@@ -89,7 +100,6 @@ func main() {
 	}
 
 	if loadSession.HeroName == "" && len(loadSession.HeroName) == 0 {
-		fmt.Println("HeroName is empty")
 		// calling  get hero list api
 		heroList := &HeroList{
 			Heros: []Hero{
@@ -107,33 +117,42 @@ func main() {
 					DefensePower: 3,
 					Blood:        4,
 				},
+				{
+					Name:         "hero3",
+					Details:      "3",
+					AttackPower:  2,
+					DefensePower: 3,
+					Blood:        4,
+				},
 			},
 		}
-		fmt.Println("You can choose one Hero from below list:")
+		fmt.Println("----------------------------------------------------------")
+		color.Info.Println("You can choose one Hero from below list:")
+		var heroNameList = make([]string, len(heroList.Heros))
 		for index, hero := range heroList.Heros {
-			fmt.Printf("%d: %s\n", index, hero.Name)
+			heroNameList[index] = hero.Name
 		}
-		var heroNum int
-		fmt.Scanf("%d", &heroNum)
-		choosenHero := heroList.Heros[heroNum].Name
+		choosenHero := interact.Choice(
+			"Choose Hero(use string slice/array)?",
+			heroNameList,
+			"",
+			false,
+		)
 		// call get hero api
-		fmt.Println("You have choosen Hero:", choosenHero)
+		color.Info.Println("Your select is:", choosenHero)
 
 	}
+	fmt.Println("----------------------------------------------------------")
 	for {
-		fmt.Print("Please choose a game action:\n 1: Fight \n 2: Archive\n 3: Quit\n")
-		action, err := reader.ReadString('\n')
-		if err != nil {
-			fmt.Println("An error occured while reading input. Please try again", err)
-			return
-		}
-		actionNum1 := strings.TrimSuffix(action, "\n")
-		actionNum, err := strconv.ParseInt(actionNum1, 10, 32)
-		fmt.Println(actionNum)
+		action := interact.SingleSelect(
+			"Your action(use map)?",
+			map[string]string{"1": "Fight", "2": "Archive"},
+			"1",
+		)
 		// call fight api
-		switch actionNum {
-		case 1:
-			fmt.Println("Calling Fight API: ")
+		switch action {
+		case "Fight":
+			color.Info.Println("Calling Fight API")
 			fight := &Fight{
 				GameOver:  false,
 				NextLevel: true,
@@ -142,19 +161,19 @@ func main() {
 				BossBlood: 80,
 			}
 			if fight.BossBlood == 0 {
-				fmt.Println("Enter next level:")
+				color.Info.Println("Enter Next Level")
 			} else {
 				if fight.HeroBlood == 0 {
 					break
 				}
 			}
-		case 2:
-			fmt.Println("Calling Archive API:")
-		case 3:
-			fmt.Println("Quit:")
+		case "Archive":
+			color.Info.Println("Calling Archive API")
+		case "quit":
+			color.Info.Println("quit", "quit")
 			return
 		default:
-			fmt.Println("Calling Fight API:")
+			color.Info.Println("Calling Fight API")
 		}
 	}
 
