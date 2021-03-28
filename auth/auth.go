@@ -2,6 +2,7 @@ package auth
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -12,6 +13,10 @@ const (
 	AuthLoginUrl string = "https://authz.eastus.cloudapp.azure.com:5555"
 	Url          string = "https://app.eastus.cloudapp.azure.com:8000"
 )
+
+type TokenAPIResponse struct {
+	Token string `json:"id_token"`
+}
 
 func SendRequest(method, url, token, payload string) ([]byte, error) {
 	tr := &http.Transport{
@@ -49,12 +54,34 @@ func SendRequest(method, url, token, payload string) ([]byte, error) {
 		fmt.Println(err)
 		return nil, err
 	}
-	fmt.Println(string(resBody))
+	// fmt.Println(string(resBody))
 	return resBody, err
 }
 
 func RequestToken(passcode string) (string, error) {
 	url := fmt.Sprintf("%s/passcode?passcode=%s", AuthLoginUrl, passcode)
 	token, err := SendRequest("GET", url, "", "")
-	return string(token), err
+	if err != nil {
+		return "", err
+	}
+	tokenJson := TokenAPIResponse{}
+	err = json.Unmarshal(token, &tokenJson)
+	if err != nil {
+		return "", err
+	}
+	return tokenJson.Token, err
+}
+
+func LoadSession(token string) (string, error) {
+	url := fmt.Sprintf("%s/session", Url)
+	resBody, err := SendRequest("GET", url, token, "")
+	if err != nil {
+		return "", err
+	}
+	// tokenJson := TokenAPIResponse{}
+	// err = json.Unmarshal(token, &tokenJson)
+	// if err != nil {
+	// 	return "", err
+	// }
+	return string(resBody), err
 }
