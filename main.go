@@ -60,7 +60,7 @@ type Fight struct {
 
 type Level struct {
 	Msg     string
-	Seesion string
+	Session string
 }
 
 const ConfigFile = ".game/config"
@@ -188,6 +188,11 @@ func main() {
 			fmt.Println("BossBlood", fightResp.BossBlood)
 			if fightResp.GameOver || fightResp.HeroBlood == 0 {
 				color.Info.Println("Game Over")
+				msg, err := auth.QuitSession(token)
+				if err != nil {
+					color.Error.Println("An error occured while quit session !!!!", err)
+				}
+				color.Info.Println(msg)
 				return
 			}
 			if fightResp.NextLevel || fightResp.BossBlood == 0 {
@@ -195,10 +200,12 @@ func main() {
 				if err != nil {
 					color.Error.Println("An error occured while goes into next level !!!!", err)
 				}
-				curLevel := nextLevelResp.Session["current_level"]
-				if curLevel != nil {
-					if curLevel.(int32) > 2 {
-						return
+				if nextLevelResp != nil && nextLevelResp.Session != nil {
+					curLevel := nextLevelResp.Session["current_level"]
+					if curLevel != nil {
+						if curLevel.(float64) > 2 {
+							return
+						}
 					}
 				}
 			}
@@ -222,5 +229,4 @@ func main() {
 			color.Info.Println("Calling Fight API")
 		}
 	}
-
 }
