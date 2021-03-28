@@ -96,6 +96,12 @@ func VerifyEmailFormat(email string) bool {
 	return reg.MatchString(email)
 }
 
+func VerifyPasscode(passcode string) bool {
+	pattern := `\d{6}`
+	reg := regexp.MustCompile(pattern)
+	return reg.MatchString(passcode)
+}
+
 func main() {
 	var emailAddress = ""
 	var err error
@@ -119,14 +125,33 @@ func main() {
 		}
 		color.Warn.Println("Your email address is empty or incorrect, Please try again", err)
 	}
-
 	token := GetToken()
 	if token == "" {
-		token, err = auth.RequestToken("116407")
+		color.Green.Printf("Please Open %s in your browser\n", auth.AuthLoginUrl)
+		color.Green.Printf("Login System with your email address: %s\n", emailAddress)
+		color.Green.Printf("Then copy passcode from your browser to here: ")
+		var passcode string
+		for {
+			passcode, err = reader.ReadString('\n')
+			if err != nil {
+				color.Error.Println("An error occured while get password. Please try again", err)
+				return
+			}
+			// remove the delimeter from the string
+			passcode = strings.TrimSuffix(passcode, "\n")
+			if passcode != "" && len(passcode) == 6 {
+				if VerifyPasscode(passcode) {
+					break
+				}
+			}
+			color.Warn.Println("Your passcode is incorrect, Please try again", err)
+		}
+		color.Info.Println(passcode)
+		token, err = auth.RequestToken(passcode)
 		if err != nil {
 			color.Error.Println("An error occured while request token !!!!", err)
+			return
 		}
-		color.Info.Println(token)
 		SetToken(token)
 	}
 	sessionView, err := auth.LoadSession(token)
