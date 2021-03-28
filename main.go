@@ -124,101 +124,98 @@ func main() {
 	if token == "" {
 		token, err = auth.RequestToken("116407")
 		if err != nil {
-			color.Error.Println("An error occured while request token!!!!", err)
+			color.Error.Println("An error occured while request token !!!!", err)
 		}
 		color.Info.Println(token)
 		SetToken(token)
 	}
-	session, err := auth.LoadSession(token)
+	sessionView, err := auth.LoadSession(token)
 	if err != nil {
-		color.Error.Println("An error occured while load session!!!!", err)
+		color.Error.Println("An error occured while load session !!!!", err)
 	}
-	color.Info.Println(session)
-	// calling load session api
-	loadSession := &Session{
-		UID:           "1",
-		HeroName:      "tq",
-		LiveHeroBlood: 3,
-		LiveBossBlood: 4,
-		CurrentLevel:  5,
-		Score:         6,
-	}
+	color.Info.Println(sessionView.Hero)
 
-	if loadSession.HeroName == "" && len(loadSession.HeroName) == 0 {
+	if len(sessionView.Hero) == 0 || sessionView.Hero["name"] == nil {
 		// calling  get hero list api
-		heroList := &HeroList{
-			Heros: []Hero{
-				{
-					Name:         "hero1",
-					Details:      "1",
-					AttackPower:  2,
-					DefensePower: 3,
-					Blood:        4,
-				},
-				{
-					Name:         "hero2",
-					Details:      "2",
-					AttackPower:  2,
-					DefensePower: 3,
-					Blood:        4,
-				},
-				{
-					Name:         "hero3",
-					Details:      "3",
-					AttackPower:  2,
-					DefensePower: 3,
-					Blood:        4,
-				},
-			},
+		heros, err := auth.RequestHeros(token)
+		if err != nil {
+			color.Error.Println("An error occured while load heros!!!!", err)
 		}
+
 		fmt.Println("----------------------------------------------------------")
 		color.Info.Println("You can choose one Hero from below list:")
-		var heroNameList = make([]string, len(heroList.Heros))
-		for index, hero := range heroList.Heros {
-			heroNameList[index] = hero.Name
+
+		var heroNameList = make([]string, len(heros))
+		for index, hero := range heros {
+			mapHero := hero.(map[string]interface{})
+			heroNameList[index] = mapHero["name"].(string)
 		}
+
 		choosenHero := interact.Choice(
-			"Choose Hero(use string slice/array)?",
+			"Choose Hero?",
 			heroNameList,
 			"",
 			false,
 		)
 		// call get hero api
 		color.Info.Println("Your select is:", choosenHero)
+		setHero, err := auth.SetHero(choosenHero, token)
+		if err != nil {
+			color.Error.Println("An error occured while set hero !!!!", err)
+		}
+		color.Info.Println(setHero)
 
 	}
 	fmt.Println("----------------------------------------------------------")
 	for {
 		action := interact.SingleSelect(
-			"Your action(use map)?",
-			map[string]string{"1": "Fight", "2": "Archive"},
+			"Your action?",
+			map[string]string{"1": "Fight", "2": "Archive", "3": "Quit"},
 			"1",
+			false,
 		)
 		// call fight api
 		switch action {
 		case "Fight":
 			color.Info.Println("Your select is:", action)
-			color.Info.Println("Calling Fight API")
-			fight := &Fight{
-				GameOver:  false,
-				NextLevel: true,
-				Score:     0,
-				HeroBlood: 20,
-				BossBlood: 80,
+			fightResp, err := auth.Fight(token)
+			if err != nil {
+				color.Error.Println("An error occured while fight !!!!", err)
 			}
-			if fight.BossBlood == 0 {
-				color.Info.Println("Enter Next Level")
-			} else {
-				if fight.HeroBlood == 0 {
-					break
+			fmt.Println("GameOver", fightResp.GameOver)
+			fmt.Println("NextLevel", fightResp.NextLevel)
+			fmt.Println("HeroBlood", fightResp.HeroBlood)
+			fmt.Println("BossBlood", fightResp.BossBlood)
+			if fightResp.GameOver || fightResp.HeroBlood == 0 {
+				color.Info.Println("Game Over")
+				return
+			}
+			if fightResp.NextLevel || fightResp.BossBlood == 0 {
+				nextLevelResp, err := auth.NextLevel(token)
+				if err != nil {
+					color.Error.Println("An error occured while goes into next level !!!!", err)
+				}
+				curLevel := nextLevelResp.Session["current_level"]
+				if curLevel != nil {
+					if curLevel.(int32) > 2 {
+						return
+					}
 				}
 			}
 		case "Archive":
 			color.Info.Println("Your select is:", action)
-			color.Info.Println("Calling Archive API")
-		case "quit":
+			sessionid, err := auth.ArchiveSession(token)
+			if err != nil {
+				color.Error.Println("An error occured while archive session !!!!", err)
+			}
+			color.Info.Println(fmt.Sprintf("SessionID %s is archived", sessionid))
+		case "Quit":
 			color.Info.Println("Your select is:", action)
-			color.Info.Println("quit", "quit")
+			msg, err := auth.QuitSession(token)
+			if err != nil {
+				color.Error.Println("An error occured while quit session !!!!", err)
+			}
+			color.Info.Println(msg)
 			return
 		default:
 			color.Info.Println("Your select is:", action)
