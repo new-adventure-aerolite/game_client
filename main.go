@@ -123,6 +123,15 @@ func VerifyPasscode(passcode string) bool {
 	return reg.MatchString(passcode)
 }
 
+func ShowSessionInfo(session, hero map[string]interface{}) {
+	color.Info.Println("  Hero Name: ", hero["name"])
+	color.Info.Println("    Description: ", hero["details"])
+	color.Info.Println("    Live Hero Blood: ", session["live_hero_blood"])
+	color.Info.Println("    Live Boss Blood: ", session["live_boss_blood"])
+	color.Info.Println("    Current Level: ", session["current_level"])
+	color.Info.Println("    Score: ", session["score"])
+}
+
 func main() {
 
 	var err error
@@ -161,6 +170,20 @@ func main() {
 		SetToken(token)
 		color.Green.Printf("Login Successfully")
 	}
+
+	method := interact.SelectOne(
+		"You want to play game from beginning or continue from last time?",
+		map[string]string{"1": "From beginning", "2": "Continue"},
+		"2",
+		false,
+	)
+	color.Info.Println("Your select is:", method)
+	if method != "Continue" {
+		err = auth.ClearSession(token)
+		if err != nil {
+			color.Error.Println("An error occured while clear session !!!!", err)
+		}
+	}
 	sessionView, err := auth.LoadSession(token)
 	if err != nil {
 		color.Error.Println("An error occured while load session !!!!", err)
@@ -193,10 +216,12 @@ func main() {
 		if err != nil {
 			color.Error.Println("An error occured while set hero !!!!", err)
 		}
-		color.Info.Println("Description: ", setHero.Hero["details"])
+		// color.Info.Println("Description: ", setHero.Hero["details"])
+		ShowSessionInfo(setHero.Session, setHero.Hero)
 	} else {
-		color.Info.Println("The hero you choose is:", sessionView.Hero["name"])
-		color.Info.Println("Description: ", sessionView.Hero["details"])
+		// color.Info.Println("The hero you choose is:", sessionView.Hero["name"])
+		// color.Info.Println("Description: ", sessionView.Hero["details"])
+		ShowSessionInfo(sessionView.Session, sessionView.Hero)
 	}
 	fmt.Println("----------------------------------------------------------")
 	for {
@@ -209,14 +234,16 @@ func main() {
 		// call fight api
 		switch action {
 		case "Fight":
-			color.Info.Println("Your select is:", action)
+			// color.Info.Println("Your select is:", action)
 			fightResp, err := auth.Fight(token)
 			if err != nil {
 				color.Error.Println("An error occured while fight !!!!", err)
 			}
 
-			color.Info.Println("  Hero Blood  ", fightResp.HeroBlood)
-			color.Info.Println("  Boss Blood  ", fightResp.BossBlood)
+			color.Info.Println("      Hero Blood  ", fightResp.HeroBlood)
+			color.Info.Println("      Boss Blood  ", fightResp.BossBlood)
+			color.Info.Println("      Next Level  ", fightResp.NextLevel)
+			color.Info.Println("      Score  ", fightResp.Score)
 
 			if fightResp.GameOver || fightResp.HeroBlood == 0 {
 				color.Info.Println("Game Over")
@@ -228,6 +255,19 @@ func main() {
 				return
 			}
 			if fightResp.NextLevel || fightResp.BossBlood == 0 {
+				session1, err := auth.LoadSession(token)
+				if err != nil {
+					color.Error.Println("An error occured while load seesion !!!!", err)
+				}
+				if session1.Session["current_level"].(float64) >= 2 {
+					// game over
+					color.Info.Println("Congratulations, You Win the Game, ByeBye")
+					err := auth.ClearSession(token)
+					if err != nil {
+						color.Error.Println("An error occured while clear session !!!!", err)
+					}
+					return
+				}
 				nextLevelResp, err := auth.NextLevel(token)
 				if err != nil {
 					color.Error.Println("An error occured while goes into next level !!!!", err)
@@ -241,6 +281,14 @@ func main() {
 					return
 				}
 				color.Info.Println("You have gone into next level !!!")
+				// if nextLevelResp != nil && nextLevelResp.Session != nil {
+				// 	curLevel := nextLevelResp.Session["current_level"]
+				// 	if curLevel != nil {
+				// 		if curLevel.(float64) > 2 {
+				// 			return
+				// 		}
+				// 	}
+				// }
 			}
 		case "Archive":
 			color.Info.Println("Your select is:", action)
