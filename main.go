@@ -103,32 +103,33 @@ func VerifyPasscode(passcode string) bool {
 }
 
 func main() {
-	var emailAddress = ""
+	// var emailAddress = ""
 	var err error
 	reader := bufio.NewReader(os.Stdin)
-	for {
-		color.Green.Printf("Please Input your email address: ")
-		// ReadString will block until the delimiter is entered
-		emailAddress, err = reader.ReadString('\n')
-		if err != nil {
-			color.Error.Println("An error occured while reading input. Please try again", err)
-			return
-		}
-		// remove the delimeter from the string
-		emailAddress = strings.TrimSuffix(emailAddress, "\n")
-		if emailAddress != "" && len(emailAddress) != 0 {
-			// fmt.Println(emailAddress)
-			if VerifyEmailFormat(emailAddress) {
-				break
-			}
+	// for {
+	// 	color.Green.Printf("Please Input your email address: ")
+	// 	// ReadString will block until the delimiter is entered
+	// 	emailAddress, err = reader.ReadString('\n')
+	// 	if err != nil {
+	// 		color.Error.Println("An error occured while reading input. Please try again", err)
+	// 		return
+	// 	}
+	// 	// remove the delimeter from the string
+	// 	emailAddress = strings.TrimSuffix(emailAddress, "\n")
+	// 	if emailAddress != "" && len(emailAddress) != 0 {
+	// 		// fmt.Println(emailAddress)
+	// 		if VerifyEmailFormat(emailAddress) {
+	// 			break
+	// 		}
 
-		}
-		color.Warn.Println("Your email address is empty or incorrect, Please try again", err)
-	}
+	// 	}
+	// 	color.Warn.Println("Your email address is empty or incorrect, Please try again", err)
+	// }
+
 	token := GetToken()
 	if token == "" {
 		color.Green.Printf("Please Open %s in your browser\n", auth.AuthLoginUrl)
-		color.Green.Printf("Login System with your email address: %s\n", emailAddress)
+		// color.Green.Printf("Login System with your email address: %s\n", emailAddress)
 		color.Green.Printf("Then copy passcode from your browser to here: ")
 		var passcode string
 		for {
@@ -154,11 +155,16 @@ func main() {
 		}
 		SetToken(token)
 	}
+	msg, err := auth.ClearSession(token)
+	if err != nil {
+		color.Error.Println("An error occured while clear session !!!!", err)
+	}
+	color.Info.Println(msg)
 	sessionView, err := auth.LoadSession(token)
 	if err != nil {
 		color.Error.Println("An error occured while load session !!!!", err)
 	}
-	color.Info.Println(sessionView.Hero)
+	// color.Info.Println(sessionView.Hero)
 
 	if len(sessionView.Hero) == 0 || sessionView.Hero["name"] == nil {
 		// calling  get hero list api
@@ -188,8 +194,7 @@ func main() {
 		if err != nil {
 			color.Error.Println("An error occured while set hero !!!!", err)
 		}
-		color.Info.Println(setHero)
-
+		color.Info.Println("Description: ", setHero.Hero["details"])
 	}
 	fmt.Println("----------------------------------------------------------")
 	for {
@@ -228,7 +233,13 @@ func main() {
 				if nextLevelResp != nil && nextLevelResp.Session != nil {
 					curLevel := nextLevelResp.Session["current_level"]
 					if curLevel != nil {
-						if curLevel.(float64) > 2 {
+						if curLevel.(float64) == 3 {
+							color.Info.Println("Congratulations, You win the Game!!!")
+							msg, err := auth.ClearSession(token)
+							if err != nil {
+								color.Error.Println("An error occured while clear session !!!!", err)
+							}
+							color.Info.Println(msg)
 							return
 						}
 					}
