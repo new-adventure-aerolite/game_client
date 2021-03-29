@@ -1,3 +1,24 @@
+// Copyright (c) 2021 Li Wen and others
+
+// Permission is hereby granted, free of charge, to any person obtaining
+// a copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to
+// permit persons to whom the Software is furnished to do so, subject to
+// the following conditions:
+
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 package main
 
 import (
@@ -140,11 +161,6 @@ func main() {
 		SetToken(token)
 		color.Green.Printf("Login Successfully")
 	}
-	msg, err := auth.ClearSession(token)
-	if err != nil {
-		color.Error.Println("An error occured while clear session !!!!", err)
-	}
-	color.Info.Println(msg)
 	sessionView, err := auth.LoadSession(token)
 	if err != nil {
 		color.Error.Println("An error occured while load session !!!!", err)
@@ -198,10 +214,10 @@ func main() {
 			if err != nil {
 				color.Error.Println("An error occured while fight !!!!", err)
 			}
-			fmt.Println("GameOver", fightResp.GameOver)
-			fmt.Println("NextLevel", fightResp.NextLevel)
-			fmt.Println("HeroBlood", fightResp.HeroBlood)
-			fmt.Println("BossBlood", fightResp.BossBlood)
+
+			color.Info.Println("  Hero Blood  ", fightResp.HeroBlood)
+			color.Info.Println("  Boss Blood  ", fightResp.BossBlood)
+
 			if fightResp.GameOver || fightResp.HeroBlood == 0 {
 				color.Info.Println("Game Over")
 				msg, err := auth.QuitSession(token)
@@ -216,20 +232,15 @@ func main() {
 				if err != nil {
 					color.Error.Println("An error occured while goes into next level !!!!", err)
 				}
-				if nextLevelResp != nil && nextLevelResp.Session != nil {
-					curLevel := nextLevelResp.Session["current_level"]
-					if curLevel != nil {
-						if curLevel.(float64) == 3 {
-							color.Info.Println("Congratulations, You win the Game!!!")
-							msg, err := auth.ClearSession(token)
-							if err != nil {
-								color.Error.Println("An error occured while clear session !!!!", err)
-							}
-							color.Info.Println(msg)
-							return
-						}
+				if nextLevelResp != nil && nextLevelResp.Passed {
+					color.Info.Println("Congratulations, You Win the Game, ByeBye")
+					err := auth.ClearSession(token)
+					if err != nil {
+						color.Error.Println("An error occured while clear session !!!!", err)
 					}
+					return
 				}
+				color.Info.Println("You have gone into next level !!!")
 			}
 		case "Archive":
 			color.Info.Println("Your select is:", action)
