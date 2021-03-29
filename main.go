@@ -152,6 +152,7 @@ func main() {
 	var statusCode int
 	reader := bufio.NewReader(os.Stdin)
 	var heroName string = ""
+Reset:
 	token := GetToken()
 	if token == "" {
 		color.Green.Printf("Please Open %s in your browser\n", auth.AuthLoginUrl)
@@ -303,10 +304,7 @@ func main() {
 			}
 			color.Info.Println(fmt.Sprintf("SessionID %s is archived", sessionid))
 		case "Reset":
-			err := auth.ClearSession(token)
-			if err != nil {
-				color.Error.Println("An error occured while clear session !!!!", err)
-			}
+			goto Reset
 		case "Quit":
 			msg, err := auth.QuitSession(token)
 			if err != nil {
