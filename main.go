@@ -111,13 +111,12 @@ func main() {
 	token := GetToken()
 	if token == "" {
 		color.Green.Printf("Please Open %s in your browser\n", auth.AuthLoginUrl)
-
 		color.Green.Printf("Then copy passcode from your browser to here: ")
 		var passcode string
 		for {
 			passcode, err = reader.ReadString('\n')
 			if err != nil {
-				color.Error.Println("An error occured while get password. Please try again", err)
+				color.Error.Println("An error occured while get passcode. Please try again", err)
 				return
 			}
 			// remove the delimeter from the string
@@ -127,32 +126,29 @@ func main() {
 					color.Warn.Println("Your passcode is incorrect, Please try again", err)
 				}
 			}
-
-			color.Info.Println(passcode)
 			token, statusCode, err = auth.RequestToken(passcode)
 			if err != nil {
 				color.Error.Println("An error occured while request token !!!!", err)
 				return
 			}
 			if statusCode == 401 {
-				color.Error.Println("An error occured while request token !!!!", statusCode)
+				color.Error.Println("Unauthorized occured while request token !!!!", statusCode)
 			} else {
 				break
 			}
 		}
 		SetToken(token)
+		color.Green.Printf("Login Successfully")
 	}
-	// ignore session
-	// msg, err := auth.ClearSession(token)
-	// if err != nil {
-	// 	color.Error.Println("An error occured while clear session !!!!", err)
-	// }
-	// color.Info.Println(msg)
+	msg, err := auth.ClearSession(token)
+	if err != nil {
+		color.Error.Println("An error occured while clear session !!!!", err)
+	}
+	color.Info.Println(msg)
 	sessionView, err := auth.LoadSession(token)
 	if err != nil {
 		color.Error.Println("An error occured while load session !!!!", err)
 	}
-	// color.Info.Println(sessionView.Hero["details"])
 
 	if len(sessionView.Hero) == 0 || sessionView.Hero["name"] == nil {
 		// calling  get hero list api
@@ -183,7 +179,7 @@ func main() {
 		}
 		color.Info.Println("Description: ", setHero.Hero["details"])
 	} else {
-		color.Info.Println("Currently your select is:", sessionView.Hero["name"])
+		color.Info.Println("The hero you choose is:", sessionView.Hero["name"])
 		color.Info.Println("Description: ", sessionView.Hero["details"])
 	}
 	fmt.Println("----------------------------------------------------------")
