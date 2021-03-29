@@ -104,18 +104,18 @@ func SendRequest(method, url, token, payload string) (*SessionResp, error) {
 	return sessionResp, err
 }
 
-func RequestToken(passcode string) (string, error) {
+func RequestToken(passcode string) (string, int, error) {
 	url := fmt.Sprintf("%s/passcode?passcode=%s", AuthLoginUrl, passcode)
 	token, err := SendRequest("GET", url, "", "")
 	if err != nil {
-		return "", err
+		return "", token.StatusCode, err
 	}
 	tokenJson := TokenAPIResponse{}
 	err = json.Unmarshal(token.Body, &tokenJson)
 	if err != nil {
-		return "", err
+		return "", token.StatusCode, err
 	}
-	return tokenJson.Token, err
+	return tokenJson.Token, token.StatusCode, err
 }
 
 func LoadSession(token string) (*SessionViewResponse, error) {
