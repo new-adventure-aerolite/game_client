@@ -20,6 +20,9 @@ github.com/gookit/goutil/sysutil/process
 github.com/mattn/go-isatty
 # github.com/mitchellh/go-homedir v1.1.0
 github.com/mitchellh/go-homedir
+# github.com/pkg/browser v0.0.0-20210115035449-ce105d075bb4
+## explicit
+github.com/pkg/browser
 # github.com/smartystreets/goconvey v1.6.4
 ## explicit
 # golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83

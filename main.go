@@ -33,6 +33,7 @@ import (
 	"github.com/go-ini/ini"
 	"github.com/gookit/color"
 	"github.com/gookit/gcli/v3/interact"
+	"github.com/pkg/browser"
 )
 
 type SessionView struct {
@@ -147,15 +148,15 @@ func ShowSessionInfo(session, hero map[string]interface{}) {
 }
 
 func main() {
-
 	var err error
 	var statusCode int
-	reader := bufio.NewReader(os.Stdin)
 	var heroName string = ""
+	reader := bufio.NewReader(os.Stdin)
 Reset:
 	token := GetToken()
 	if token == "" {
 		color.Green.Printf("Please Open %s in your browser\n", auth.AuthLoginUrl)
+		browser.OpenURL(auth.AuthLoginUrl)
 		color.Green.Printf("Then copy passcode from your browser to here: ")
 		var passcode string
 		for {
@@ -183,7 +184,7 @@ Reset:
 			}
 		}
 		SetToken(token)
-		color.Green.Printf("Login Successfully")
+		color.Green.Println("Login Successfully")
 	}
 
 	method := interact.SelectOne(
