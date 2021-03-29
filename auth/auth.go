@@ -14,6 +14,11 @@ const (
 	Url          string = "https://app.eastus.cloudapp.azure.com:8000"
 )
 
+type SessionResp struct {
+	Body       []byte
+	StatusCode int // e.g. 200
+}
+
 type QuitResponse struct {
 	Msg string `json:"msg"`
 }
@@ -55,14 +60,16 @@ type Boss interface {
 type Session interface {
 }
 
-func SendRequest(method, url, token, payload string) ([]byte, error) {
+func SendRequest(method, url, token, payload string) (*SessionResp, error) {
+	var req *http.Request
+	var err error
+
+	sessionResp := &SessionResp{}
+
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	client := &http.Client{Transport: tr}
-
-	var req *http.Request
-	var err error
 
 	if payload != "" {
 		reqBody := strings.NewReader(payload)
@@ -91,8 +98,10 @@ func SendRequest(method, url, token, payload string) ([]byte, error) {
 		fmt.Println(err)
 		return nil, err
 	}
+	sessionResp.StatusCode = res.StatusCode
+	sessionResp.Body = resBody
 	// fmt.Println(string(resBody))
-	return resBody, err
+	return sessionResp, err
 }
 
 func RequestToken(passcode string) (string, error) {
@@ -102,7 +111,7 @@ func RequestToken(passcode string) (string, error) {
 		return "", err
 	}
 	tokenJson := TokenAPIResponse{}
-	err = json.Unmarshal(token, &tokenJson)
+	err = json.Unmarshal(token.Body, &tokenJson)
 	if err != nil {
 		return "", err
 	}
@@ -118,7 +127,7 @@ func LoadSession(token string) (*SessionViewResponse, error) {
 	}
 
 	object := SessionViewResponse{}
-	err = json.Unmarshal(resBody, &object)
+	err = json.Unmarshal(resBody.Body, &object)
 	if err != nil {
 		return nil, err
 	}
@@ -129,12 +138,12 @@ func LoadSession(token string) (*SessionViewResponse, error) {
 func RequestHeros(token string) ([]Hero, error) {
 	url := fmt.Sprintf("%s/heros", Url)
 	resBody, err := SendRequest("GET", url, token, "")
-	fmt.Println(string(resBody))
+
 	if err != nil {
 		return nil, err
 	}
 	var objects []Hero
-	err = json.Unmarshal(resBody, &objects)
+	err = json.Unmarshal(resBody.Body, &objects)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +159,7 @@ func SetHero(heroname, token string) (*SessionViewResponse, error) {
 	}
 
 	object := SessionViewResponse{}
-	err = json.Unmarshal(resBody, &object)
+	err = json.Unmarshal(resBody.Body, &object)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +175,7 @@ func QuitSession(token string) (string, error) {
 		return "", err
 	}
 	object := QuitResponse{}
-	err = json.Unmarshal(resBody, &object)
+	err = json.Unmarshal(resBody.Body, &object)
 	if err != nil {
 		return "", err
 	}
@@ -182,7 +191,7 @@ func ArchiveSession(token string) (string, error) {
 		return "", err
 	}
 	object := ArchiveResponse{}
-	err = json.Unmarshal(resBody, &object)
+	err = json.Unmarshal(resBody.Body, &object)
 	if err != nil {
 		return "", err
 	}
@@ -198,7 +207,7 @@ func Fight(token string) (*FightResponse, error) {
 		return nil, err
 	}
 	object := FightResponse{}
-	err = json.Unmarshal(resBody, &object)
+	err = json.Unmarshal(resBody.Body, &object)
 	if err != nil {
 		return nil, err
 	}
@@ -214,10 +223,26 @@ func NextLevel(token string) (*NextLevelResponse, error) {
 		return nil, err
 	}
 	object := NextLevelResponse{}
-	err = json.Unmarshal(resBody, &object)
+	err = json.Unmarshal(resBody.Body, &object)
 	if err != nil {
 		return nil, err
 	}
 
 	return &object, err
+}
+
+func ClearSession(token string) (string, error) {
+	url := fmt.Sprintf("%s/session/clear", Url)
+	resBody, err := SendRequest("POST", url, token, "")
+
+	if err != nil {
+		return "", err
+	}
+	object := QuitResponse{}
+	err = json.Unmarshal(resBody.Body, &object)
+	if err != nil {
+		return "", err
+	}
+
+	return object.Msg, err
 }
