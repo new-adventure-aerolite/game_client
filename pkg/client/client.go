@@ -87,8 +87,8 @@ func Start() {
 Reset:
 	token := GetToken()
 	if token == "" {
-		color.Green.Printf("Please Open %s in your browser\n", auth.AuthLoginUrl)
-		browser.OpenURL(auth.AuthLoginUrl)
+		color.Green.Printf("Please Open %s in your browser\n", auth.Url)
+		browser.OpenURL(auth.Url)
 		color.Green.Printf("Then copy passcode from your browser to here: ")
 		var passcode string
 		for {

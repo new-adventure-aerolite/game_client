@@ -34,7 +34,7 @@ import (
 
 const (
 	AuthLoginUrl string = "https://authz.eastus.cloudapp.azure.com:5555"
-	Url          string = "https://app.eastus.cloudapp.azure.com:8000"
+	Url          string = "https://rpg-game.eastus.cloudapp.azure.com"
 )
 
 type SessionResp struct {
@@ -120,7 +120,7 @@ func SendRequest(method, url, token, payload string) (*SessionResp, error) {
 }
 
 func RequestToken(passcode string) (string, int, error) {
-	url := fmt.Sprintf("%s/passcode?passcode=%s", AuthLoginUrl, passcode)
+	url := fmt.Sprintf("%s/passcode?passcode=%s", Url, passcode)
 	token, err := SendRequest("GET", url, "", "")
 	if err != nil {
 		return "", token.StatusCode, err
