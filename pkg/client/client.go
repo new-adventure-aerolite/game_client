@@ -54,26 +54,29 @@ func VerifyPasscode(passcode string) bool {
 }
 
 func ShowSessionInfo(session, hero map[string]interface{}) {
-	color.Info.Printf("%30s %s\n", "  Hero Name: ", hero["name"])
-	color.Info.Printf("%30s %s\n", "    Description: ", hero["details"])
-	liveheroblood := session["live_hero_blood"].(float64)
-	livebossblood := session["live_boss_blood"].(float64)
-	currentlevel := session["current_level"].(float64)
-	// score := session["score"].(float64)
-	var liveheroblood1 int = int(liveheroblood)
-	var livebossblood1 int = int(livebossblood)
-	var currentlevel1 int = int(currentlevel)
-	color.Info.Printf("%30s %d\n", "    Live Hero Blood: ", liveheroblood1)
-	color.Info.Printf("%30s %d\n", "    Live Boss Blood: ", livebossblood1)
-	color.Info.Printf("%30s %d\n", "    Current Level: ", currentlevel1)
-	var score float64 = 0
-	if session["score"] == nil {
-		score = 0
-	} else {
-		score = session["score"].(float64)
+	if hero != nil {
+
+		color.Info.Printf("%30s %s\n", "  Hero Name: ", hero["name"])
+		color.Info.Printf("%30s %s\n", "    Description: ", hero["details"])
+		liveheroblood := session["live_hero_blood"].(float64)
+		livebossblood := session["live_boss_blood"].(float64)
+		currentlevel := session["current_level"].(float64)
+		// score := session["score"].(float64)
+		var liveheroblood1 int = int(liveheroblood)
+		var livebossblood1 int = int(livebossblood)
+		var currentlevel1 int = int(currentlevel)
+		color.Info.Printf("%30s %d\n", "    Live Hero Blood: ", liveheroblood1)
+		color.Info.Printf("%30s %d\n", "    Live Boss Blood: ", livebossblood1)
+		color.Info.Printf("%30s %d\n", "    Current Level: ", currentlevel1)
+		var score float64 = 0
+		if session["score"] == nil {
+			score = 0
+		} else {
+			score = session["score"].(float64)
+		}
+		var score1 int = int(score)
+		color.Info.Printf("%30s %d\n", "    Score: ", score1)
 	}
-	var score1 int = int(score)
-	color.Info.Printf("%30s %d\n", "    Score: ", score1)
 }
 
 func Start() {
