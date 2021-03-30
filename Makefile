@@ -1,10 +1,10 @@
 .PHONY: build run clean
 
 build:
-	go build -o bin/game_client .
+	go build -o bin/game-client .
 
 run:
-	bin/game_client start
+	bin/game-client start
 
 clean:
-	rm -rf bin/game_client
+	rm -rf bin/game-client
