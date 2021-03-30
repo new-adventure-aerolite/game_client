@@ -28,6 +28,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/new-adventure-aerolite/game-client/pkg/types"
 )
 
 const (
@@ -71,15 +73,6 @@ type SessionViewResponse struct {
 	Hero    map[string]interface{} `json:"hero"`
 	Boss    map[string]interface{} `json:"boss"`
 	Session map[string]interface{} `json:"session"`
-}
-
-type Hero interface {
-}
-
-type Boss interface {
-}
-
-type Session interface {
 }
 
 func SendRequest(method, url, token, payload string) (*SessionResp, error) {
@@ -157,14 +150,14 @@ func LoadSession(token string) (*SessionViewResponse, error) {
 	return &object, err
 }
 
-func RequestHeros(token string) ([]Hero, error) {
+func RequestHeros(token string) ([]types.Hero, error) {
 	url := fmt.Sprintf("%s/heros", Url)
 	resBody, err := SendRequest("GET", url, token, "")
 
 	if err != nil {
 		return nil, err
 	}
-	var objects []Hero
+	var objects []types.Hero
 	err = json.Unmarshal(resBody.Body, &objects)
 	if err != nil {
 		return nil, err
