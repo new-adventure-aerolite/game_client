@@ -1,61 +1,14 @@
 package client
 
 import (
-"bufio"
-"fmt"
-"os"
-"strconv"
-"strings"
+	"bufio"
+	"fmt"
+	"os"
+	"strconv"
+	"strings"
+
+	"github.com/new-adventure-aerolite/game-client/pkg/types"
 )
-
-type SessionView struct {
-	Hero    Hero
-	Boss    Boss
-	Seesion Session
-}
-
-type Boss struct {
-	Name         string
-	Details      string
-	AttackPower  int32
-	DefensePower int32
-	Blood        int32
-	Level        int32
-}
-
-type Session struct {
-	UID           string
-	HeroName      string
-	LiveHeroBlood int32
-	LiveBossBlood int32
-	CurrentLevel  int32
-	Score         int32
-}
-
-type HeroList struct {
-	Heros []Hero
-}
-
-type Hero struct {
-	Name         string
-	Details      string
-	AttackPower  int32
-	DefensePower int32
-	Blood        int32
-}
-
-type Fight struct {
-	GameOver  bool
-	NextLevel bool
-	Score     int32
-	HeroBlood int32
-	BossBlood int32
-}
-
-type Level struct {
-	Msg     string
-	Seesion string
-}
 
 func Start() {
 	var emailAddress = ""
@@ -79,7 +32,7 @@ func Start() {
 		}
 	}
 	// calling load session api
-	loadSession := &Session{
+	loadSession := &types.Session{
 		UID:           "1",
 		HeroName:      "",
 		LiveHeroBlood: 3,
@@ -91,8 +44,8 @@ func Start() {
 	if loadSession.HeroName == "" && len(loadSession.HeroName) == 0 {
 		fmt.Println("HeroName is empty")
 		// calling  get hero list api
-		heroList := &HeroList{
-			Heros: []Hero{
+		heroList := &types.HeroList{
+			Heros: []types.Hero{
 				{
 					Name:         "hero1",
 					Details:      "1",
@@ -134,7 +87,7 @@ func Start() {
 		switch actionNum {
 		case 1:
 			fmt.Println("Calling Fight API: ")
-			fight := &Fight{
+			fight := &types.Fight{
 				GameOver:  false,
 				NextLevel: true,
 				Score:     0,
