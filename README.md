@@ -17,16 +17,16 @@ Note: if you run this application first time, you can leave id_token is empty
 Then run cmd  `make run` to start your application.
 
 ## Usage
-When the application is started first time, it will open url of `https://rpg-game.eastus.cloudapp.azure.com/login` in your default browser and then you will see ![image](!login.png), choose one authetication method to login and you will get one 6 digits ![passcode](passcode.png), copy that passcode to cli to login dev. Next time you start application, it will get token from $HOME/.game/config configure file to login into system.
+When the application is started first time, it will open url of `https://rpg-game.eastus.cloudapp.azure.com/login` in your default browser and then you will see ![image](img/login.png), choose one authetication method to login and you will get one 6 digits ![passcode](img/passcode.png), copy that passcode to cli to login dev. Next time you start application, it will get token from $HOME/.game/config configure file to login into system.
 
 Once you login the system successfully, you can start game to start.
 You can choose a hero as a player to start to fight.
 
 - Start Game
-![Start](start.png)
+![Start](img/start.png)
 - Choose Hero
-![Hero](hero.png)
+![Hero](img/hero.png)
 - Chosse Action
-![Action](action.png)
+![Action](img/action.png)
 - Win the Game
-![Win](win.png)
+![Win](img/win.png)
