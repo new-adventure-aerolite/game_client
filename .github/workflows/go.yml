@@ -3,12 +3,25 @@ on:
     tags:
     - 'v*'
 
-name: Upload Release Game Client
+name: Upload Release Asset Game Client
 
 jobs:
   build:
-    name: Upload Release Assets
-    runs-on: ubuntu-latest
+    name: Upload Release Assets for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: game-client
+            asset_name: game-client-linux-amd64
+          - os: windows-latest
+            artifact_name: game-client
+            asset_name: mything-windows-amd64
+          - os: macos-latest
+            artifact_name: game-client
+            asset_name: game-client-macos-amd64
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -32,12 +45,12 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload Release Game Client
-        id: upload-release-assets
-        uses: dwenegar/upload-release-assets@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
         with:
-          release_id: ${{ steps.create_release.outputs.id }}
-          assets_path: game-client
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{ matrix.artifact_name }}
+          asset_name: ${{ matrix.asset_name }}
+          tag: ${{ github.ref }}
+          overwrite: true
         
