@@ -143,7 +143,7 @@ Reset:
 				return
 			}
 			// remove the delimeter from the string
-			passcode = strings.TrimSuffix(passcode, "\n")
+			passcode = strings.TrimRight(passcode, "\r\n")
 			if passcode != "" && len(passcode) == 6 {
 				if !VerifyPasscode(passcode) {
 					color.Warn.Println("Your passcode is incorrect, Please try again", err)
