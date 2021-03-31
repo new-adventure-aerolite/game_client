@@ -214,7 +214,7 @@ func ArchiveSession(token string) (string, error) {
 	return object.SessionID, err
 }
 
-func Fight(token string) (*FightResponse, error) {
+func DoFight(token string) (*FightResponse, error) {
 	url := fmt.Sprintf("%s/session/fight", Url)
 	resBody, err := SendRequest("PUT", url, token, "")
 
