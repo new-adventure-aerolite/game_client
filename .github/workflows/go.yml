@@ -10,6 +10,8 @@ jobs:
     name: Create Github Release
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
       - name: create release
         id: create_release
         uses: actions/create-release@v1
