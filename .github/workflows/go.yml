@@ -16,8 +16,8 @@ jobs:
             artifact_name: game-client
             asset_name: game-client-linux-amd64
           - os: windows-latest
-            artifact_name: game-client
-            asset_name: mything-windows-amd64
+            artifact_name: game-client.exe
+            asset_name: game-client-windows-amd64
           - os: macos-latest
             artifact_name: game-client
             asset_name: game-client-macos-amd64
@@ -33,6 +33,9 @@ jobs:
 
       - name: Build
         run: go build  -v ./...
+
+      - name: show directory
+        run: ls -l *
 
       - name: Create Release
         id: create_release
