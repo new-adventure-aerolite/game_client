@@ -9,6 +9,7 @@ import (
 
 	"github.com/gookit/color"
 	"github.com/gookit/gcli/v3/interact"
+	"github.com/mitchellh/go-homedir"
 	"github.com/new-adventure-aerolite/game-client/pkg/auth"
 	"github.com/pkg/browser"
 	"gopkg.in/ini.v1"
@@ -17,7 +18,12 @@ import (
 const ConfigFile = ".game/config"
 
 func GetToken() string {
-	homePath := os.Getenv("HOME")
+	// homePath := os.Getenv("HOME")
+	homePath, err := homedir.Dir()
+	if err != nil {
+		color.Error.Printf("Fail to read home dir: %v", err)
+		os.Exit(1)
+	}
 	configFilePath := fmt.Sprintf("%s/%s", homePath, ConfigFile)
 	cfg, err := ini.Load(configFilePath)
 	if err != nil {
