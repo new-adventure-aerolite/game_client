@@ -19,7 +19,7 @@ jobs:
             go-version: 1.15
 
       - name: Build
-        run: go build -o bin/game-client -v ./...
+        run: go build  -v ./...
 
       - name: Create Release
         id: create_release
@@ -39,5 +39,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           release_id: ${{ steps.create_release.outputs.id }}
-          assets_path: bin/game-client
+          assets_path: game-client
         
