@@ -25,6 +25,7 @@ jobs:
 
   build:
     name: Upload Release Assets for ${{ matrix.os }}
+    needs: [release]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
