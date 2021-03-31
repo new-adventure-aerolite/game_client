@@ -28,11 +28,13 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/new-adventure-aerolite/game-client/pkg/types"
 )
 
 const (
 	AuthLoginUrl string = "https://authz.eastus.cloudapp.azure.com:5555"
-	Url          string = "https://app.eastus.cloudapp.azure.com:8000"
+	Url          string = "https://rpg-game.eastus.cloudapp.azure.com"
 )
 
 type SessionResp struct {
@@ -71,15 +73,6 @@ type SessionViewResponse struct {
 	Hero    map[string]interface{} `json:"hero"`
 	Boss    map[string]interface{} `json:"boss"`
 	Session map[string]interface{} `json:"session"`
-}
-
-type Hero interface {
-}
-
-type Boss interface {
-}
-
-type Session interface {
 }
 
 func SendRequest(method, url, token, payload string) (*SessionResp, error) {
@@ -127,7 +120,7 @@ func SendRequest(method, url, token, payload string) (*SessionResp, error) {
 }
 
 func RequestToken(passcode string) (string, int, error) {
-	url := fmt.Sprintf("%s/passcode?passcode=%s", AuthLoginUrl, passcode)
+	url := fmt.Sprintf("%s/passcode?passcode=%s", Url, passcode)
 	token, err := SendRequest("GET", url, "", "")
 	if err != nil {
 		return "", token.StatusCode, err
@@ -157,14 +150,14 @@ func LoadSession(token string) (*SessionViewResponse, error) {
 	return &object, err
 }
 
-func RequestHeros(token string) ([]Hero, error) {
+func RequestHeros(token string) ([]types.Hero, error) {
 	url := fmt.Sprintf("%s/heros", Url)
 	resBody, err := SendRequest("GET", url, token, "")
 
 	if err != nil {
 		return nil, err
 	}
-	var objects []Hero
+	var objects []types.Hero
 	err = json.Unmarshal(resBody.Body, &objects)
 	if err != nil {
 		return nil, err
@@ -221,7 +214,7 @@ func ArchiveSession(token string) (string, error) {
 	return object.SessionID, err
 }
 
-func Fight(token string) (*FightResponse, error) {
+func DoFight(token string) (*FightResponse, error) {
 	url := fmt.Sprintf("%s/session/fight", Url)
 	resBody, err := SendRequest("PUT", url, token, "")
 
