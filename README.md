@@ -23,7 +23,10 @@ Once you login the system successfully, you can start game to start.
 
 You can choose a hero as a player to start to fight.
 
+- CLI help
+![Help](img/help.png)
 - Start Game
+![Start](img/start.png)
 ![Start](img/start.png)
 - Choose Hero
 ![Hero](img/hero.png)
