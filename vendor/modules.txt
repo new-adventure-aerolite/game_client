@@ -18,7 +18,6 @@ github.com/inconshreveable/mousetrap
 # github.com/mattn/go-isatty v0.0.12
 github.com/mattn/go-isatty
 # github.com/mitchellh/go-homedir v1.1.0
-## explicit
 github.com/mitchellh/go-homedir
 # github.com/pkg/browser v0.0.0-20210115035449-ce105d075bb4
 ## explicit

@@ -4,12 +4,13 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/user"
+	"path"
 	"regexp"
 	"strings"
 
 	"github.com/gookit/color"
 	"github.com/gookit/gcli/v3/interact"
-	"github.com/mitchellh/go-homedir"
 	"github.com/new-adventure-aerolite/game-client/pkg/auth"
 	"github.com/pkg/browser"
 	"gopkg.in/ini.v1"
@@ -19,12 +20,11 @@ const ConfigFile = ".game/config"
 
 func GetToken() string {
 	// homePath := os.Getenv("HOME")
-	homePath, err := homedir.Dir()
-	if err != nil {
-		color.Error.Printf("Fail to read home dir: %v", err)
-		os.Exit(1)
-	}
-	configFilePath := fmt.Sprintf("%s/%s", homePath, ConfigFile)
+	// homePath, err := homedir.Dir()
+	usr, _ := user.Current()
+	configFilePath := path.Join(usr.HomeDir, ".game", "config")
+
+	// configFilePath := fmt.Sprintf("%s/%s", homePath, ConfigFile)
 	cfg, err := ini.Load(configFilePath)
 	if err != nil {
 		color.Error.Printf("Fail to read config file: %v", err)
@@ -34,8 +34,10 @@ func GetToken() string {
 }
 
 func SetToken(token string) {
-	homePath := os.Getenv("HOME")
-	configFilePath := fmt.Sprintf("%s/%s", homePath, ConfigFile)
+	// homePath := os.Getenv("HOME")
+	// configFilePath := fmt.Sprintf("%s/%s", homePath, ConfigFile)
+	usr, _ := user.Current()
+	configFilePath := path.Join(usr.HomeDir, ".game", "config")
 	cfg, err := ini.Load(configFilePath)
 	if err != nil {
 		color.Error.Printf("Fail to read config file: %v", err)
