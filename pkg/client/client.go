@@ -12,6 +12,7 @@ import (
 	"github.com/gookit/color"
 	"github.com/gookit/gcli/v3/interact"
 	"github.com/new-adventure-aerolite/game-client/pkg/auth"
+	"github.com/new-adventure-aerolite/game-client/pkg/types"
 	"github.com/pkg/browser"
 	"gopkg.in/ini.v1"
 )
@@ -242,19 +243,20 @@ Reset:
 
 			if fightResp.GameOver || fightResp.HeroBlood == 0 {
 				ShowFightInfo(fightResp.HeroBlood, fightResp.BossBlood, currentlevel1, fightResp.Score)
-				color.Info.Println("  Game Over")
-				msg, err := auth.QuitSession(token)
+				fmt.Println(types.GameOver)
+				_, err := auth.QuitSession(token)
 				if err != nil {
 					color.Error.Println("An error occured while quit session !!!!", err)
 				}
-				color.Info.Println(msg)
+				// color.Info.Println(msg)
 				return
 			}
 			if fightResp.NextLevel || fightResp.BossBlood == 0 {
 				if currentlevel1 >= 4 {
 					ShowFightInfo(fightResp.HeroBlood, fightResp.BossBlood, currentlevel1, fightResp.Score)
-					// game over
-					color.Info.Printf("  Congratulations, %s Win the Game, ByeBye\n", heroName)
+
+					color.Info.Println(types.WinGame)
+
 					err := auth.ClearSession(token)
 					if err != nil {
 						color.Error.Println("An error occured while clear session !!!!", err)
@@ -268,7 +270,7 @@ Reset:
 				}
 
 				if nextLevelResp != nil && nextLevelResp.Passed {
-					color.Info.Printf("  Congratulations, %s Win the Game, ByeBye\n", heroName)
+					color.Info.Println(types.WinGame)
 					err := auth.ClearSession(token)
 					if err != nil {
 						color.Error.Println("An error occured while clear session !!!!", err)
