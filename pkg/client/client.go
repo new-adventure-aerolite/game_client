@@ -233,6 +233,7 @@ Reset:
 		)
 		switch action {
 		case "Fight":
+			Hadouken()
 			fmt.Println("----------------------------------------------------------")
 			color.Info.Printf("  %s(Hero) vs %s(Boss) \n", heroName, bossName)
 			fightResp, err := auth.DoFight(token)
