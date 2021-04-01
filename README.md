@@ -40,7 +40,7 @@ You can choose a hero as a player to start to fight.
 ![Help](img/help.png)
 - Start Game
 ![Start](img/start.png)
-![Start](img/start.png)
+![GameOver](img/gameover.png)
 - Choose Hero
 ![Hero](img/hero.png)
 - Chosse Action
