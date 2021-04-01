@@ -85,25 +85,26 @@ func ShowSessionInfo(session, hero, boss map[string]interface{}) {
 		color.Info.Printf("%30s %d\n", fmt.Sprintf("%s Attach Power: ", hero["name"]), attachpower1)
 		color.Info.Printf("%30s %d\n", fmt.Sprintf("%s Defense Power: ", hero["name"]), defensepower1)
 		color.Info.Printf("%30s %d\n", fmt.Sprintf("%s Blood: ", hero["name"]), blood1)
+		if session != nil {
+			liveheroblood := session["live_hero_blood"].(float64)
+			livebossblood := session["live_boss_blood"].(float64)
+			currentlevel := session["current_level"].(float64)
+			var liveheroblood1 int = int(liveheroblood)
+			var livebossblood1 int = int(livebossblood)
+			var currentlevel1 int = int(currentlevel)
 
-		liveheroblood := session["live_hero_blood"].(float64)
-		livebossblood := session["live_boss_blood"].(float64)
-		currentlevel := session["current_level"].(float64)
-		var liveheroblood1 int = int(liveheroblood)
-		var livebossblood1 int = int(livebossblood)
-		var currentlevel1 int = int(currentlevel)
-
-		color.Info.Printf("%30s %d\n", "    Live Hero Blood: ", liveheroblood1)
-		color.Info.Printf("%30s %d\n", "    Live Boss Blood: ", livebossblood1)
-		color.Info.Printf("%30s %d\n", "    Current Level: ", currentlevel1)
-		var score float64 = 0
-		if session["score"] == nil {
-			score = 0
-		} else {
-			score = session["score"].(float64)
+			color.Info.Printf("%30s %d\n", "    Live Hero Blood: ", liveheroblood1)
+			color.Info.Printf("%30s %d\n", "    Live Boss Blood: ", livebossblood1)
+			color.Info.Printf("%30s %d\n", "    Current Level: ", currentlevel1)
+			var score float64 = 0
+			if session["score"] == nil {
+				score = 0
+			} else {
+				score = session["score"].(float64)
+			}
+			var score1 int = int(score)
+			color.Info.Printf("%30s %d\n", "    Score: ", score1)
 		}
-		var score1 int = int(score)
-		color.Info.Printf("%30s %d\n", "    Score: ", score1)
 	}
 	fmt.Println("----------------------------------------------------------")
 	if boss != nil {
