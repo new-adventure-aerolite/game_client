@@ -27,6 +27,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/new-adventure-aerolite/game-client/pkg/types"
@@ -166,8 +167,8 @@ func RequestHeros(token string) ([]types.Hero, error) {
 }
 
 func SetHero(heroname, token string) (*SessionViewResponse, error) {
-	url := fmt.Sprintf("%s/session?hero=%s", Url, heroname)
-	resBody, err := SendRequest("PUT", url, token, "")
+	urlstring := fmt.Sprintf("%s/session?hero=%s", Url, url.PathEscape(heroname))
+	resBody, err := SendRequest("PUT", urlstring, token, "")
 
 	if err != nil {
 		return nil, err
