@@ -20,12 +20,9 @@ import (
 const ConfigFile = ".game/config"
 
 func GetToken() string {
-	// homePath := os.Getenv("HOME")
-	// homePath, err := homedir.Dir()
 	usr, _ := user.Current()
 	configFilePath := path.Join(usr.HomeDir, ".game", "config")
 
-	// configFilePath := fmt.Sprintf("%s/%s", homePath, ConfigFile)
 	cfg, err := ini.Load(configFilePath)
 	if err != nil {
 		color.Error.Printf("Fail to read config file: %v", err)
@@ -35,8 +32,6 @@ func GetToken() string {
 }
 
 func SetToken(token string) {
-	// homePath := os.Getenv("HOME")
-	// configFilePath := fmt.Sprintf("%s/%s", homePath, ConfigFile)
 	usr, _ := user.Current()
 	configFilePath := path.Join(usr.HomeDir, ".game", "config")
 	cfg, err := ini.Load(configFilePath)
@@ -225,7 +220,6 @@ Reset:
 	var currentlevel1 int32 = int32(currentLevel)
 	fmt.Println("----------------------------------------------------------")
 	for {
-		// var prefightResp *auth.FightResponse = nil
 		action := interact.SingleSelect(
 			"Your action?",
 			map[string]string{"1": "Fight", "2": "Save", "3": "Reset", "4": "Quit"},
@@ -250,7 +244,6 @@ Reset:
 				if err != nil {
 					color.Error.Println("An error occured while quit session !!!!", err)
 				}
-				// color.Info.Println(msg)
 				return
 			}
 			if fightResp.NextLevel || fightResp.BossBlood == 0 {
