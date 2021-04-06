@@ -1,15 +1,15 @@
-package termination
+package client
 
 import (
 	_ "container/list"
-	"time"
 	"fmt"
-	"os"
 	"log"
+	"os"
 	"sort"
+	"time"
 
-	"github.com/nsf/termbox-go"
 	rtree "github.com/dhconnelly/rtreego"
+	"github.com/nsf/termbox-go"
 )
 
 type Position struct {
@@ -26,55 +26,58 @@ type Shape map[string][]string
 
 type Termination struct {
 	Debug            string /* set this to file path to output Debug to it */
-	Width            int /* RO - the Width of the terminal */
-	Height           int /* RO - the Height of the terminal */
-	FramesPerSecond  int /* RW - Defaults to 60.  This is the overall Animation speed */
-	FrameNum         int /* RO - the current frame number */ 
-	TransparencyChar rune /* RW - What character to use for Transparency in our models */ 
-	DefaultColor     rune /* RW - The default color for everything */ 
+	Width            int    /* RO - the Width of the terminal */
+	Height           int    /* RO - the Height of the terminal */
+	FramesPerSecond  int    /* RW - Defaults to 60.  This is the overall Animation speed */
+	FrameNum         int    /* RO - the current frame number */
+	TransparencyChar rune   /* RW - What character to use for Transparency in our models */
+	DefaultColor     rune   /* RW - The default color for everything */
 
 	/* Internal State */
-	entities    []*Entity /* All entities added are here */
-	_frameStart int64 /* nanosecond snapshot for timing */
-	_frameStop  int64 /* nanosecond snapshot for timing */
-	_debugFile  *os.File /* our debug output file */
-	entityId    int /* incremented counter for handing out ids to entities */
+	entities    []*Entity    /* All entities added are here */
+	_frameStart int64        /* nanosecond snapshot for timing */
+	_frameStop  int64        /* nanosecond snapshot for timing */
+	_debugFile  *os.File     /* our debug output file */
+	entityId    int          /* incremented counter for handing out ids to entities */
 	rt          *rtree.Rtree /* collision detection! */
+
+	/* quit channel */
+	quitc chan bool /* quit channel */
 }
 
 type Entity struct {
 	Shape            map[string][]string /* RW - Our Animation Shape.  This contains one or more animation paths */
 	ColorMask        map[string][]string /* RW - Our Animation Shape.  Should match the Shape exactly, but instead of doing ascii art, you use characters for colors.  b = blue, c = cyan, etc */
-	DefaultColor     rune /* Default Color for the Shape */
-	DeathOnLastFrame bool /* Does the Shape die after a single run? */
-	DeathOnOffScreen bool /* Does the Shape die when it can't be seen/ */
-	Data             interface{} /* RW - This is your state, write what you want here */
-	FramesPerSecond  int  /* RW - Speed of the Animation.  This number cannot be greater than the overall Termination::FramesPerSecond */
-	MovesPerSecond  int  /* RW - Defaults to Speed of the Animation. This allows you to adjust the movement vs animation*/
-	Height           int /* RO - Height of your Shape */
-	Width            int /* RO - Width of your Shape */
-	ShapePath        string /* RW - Defaults to "default".  This is what path to execute in your shape.  Shape[ShapePath] => []string */
+	DefaultColor     rune                /* Default Color for the Shape */
+	DeathOnLastFrame bool                /* Does the Shape die after a single run? */
+	DeathOnOffScreen bool                /* Does the Shape die when it can't be seen/ */
+	Data             interface{}         /* RW - This is your state, write what you want here */
+	FramesPerSecond  int                 /* RW - Speed of the Animation.  This number cannot be greater than the overall Termination::FramesPerSecond */
+	MovesPerSecond   int                 /* RW - Defaults to Speed of the Animation. This allows you to adjust the movement vs animation*/
+	Height           int                 /* RO - Height of your Shape */
+	Width            int                 /* RO - Width of your Shape */
+	ShapePath        string              /* RW - Defaults to "default".  This is what path to execute in your shape.  Shape[ShapePath] => []string */
 
 	/* Event Callbacks */
-	MovementCallback        MovementCallback /* Tell us how to move the thing */
-	CollisionCallback        CollisionCallback /* Tell us what to do when you hit something */
-	DeathCallback            DeathCallback /* Tell us how to die */
+	MovementCallback  MovementCallback  /* Tell us how to move the thing */
+	CollisionCallback CollisionCallback /* Tell us what to do when you hit something */
+	DeathCallback     DeathCallback     /* Tell us how to die */
 
 	/* Internal State */
-	position         Position /* where we are */
-	_visible bool /* are we visible.  This is mainly used to ensure we don't die if we start off-screen */
+	position Position     /* where we are */
+	_visible bool         /* are we visible.  This is mainly used to ensure we don't die if we start off-screen */
 	term     *Termination /* Where we live */
-	frame    int /* What frame we are on */
-	id       int /* our id! */
-	bounds   *rtree.Rect /* our cached bounds for collision detection */
+	frame    int          /* What frame we are on */
+	id       int          /* our id! */
+	bounds   *rtree.Rect  /* our cached bounds for collision detection */
 }
 
 /** Our Collision Callback.
-  * TODO: We should hide this implementation
-  */
+ * TODO: We should hide this implementation
+ */
 func (entity *Entity) Bounds() *rtree.Rect {
 
-	return entity.bounds;
+	return entity.bounds
 }
 
 /* Create a new termination Object that will fill the entire screen */
@@ -95,6 +98,8 @@ func New() *Termination {
 	term.TransparencyChar = '?'
 	term.DefaultColor = 'w'
 	term.rt = rtree.NewTree(2, 5, 30)
+
+	term.quitc = make(chan bool)
 	return term
 }
 
@@ -124,6 +129,7 @@ func (term *Termination) NewEntity(position Position) *Entity {
 }
 
 func (term *Termination) Close() {
+	close(term.quitc)
 	termbox.Close()
 }
 
@@ -207,13 +213,18 @@ func (term *Termination) sortEntities() {
 
 func (term *Termination) Animate() {
 	for {
+		select {
+		case <-term.quitc:
+			return
+		default:
+		}
 		term.frameStart() // <--- helps us with timing
 		/* Clear Everything in the buffer */
 		termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 
-		/* process every entity and draw it! 
+		/* process every entity and draw it!
 		 * these are sorted by zIndex
-                 */
+		 */
 		for e := 0; e < len(term.entities); e++ {
 			anEntity := term.entities[e]
 
@@ -232,7 +243,7 @@ func (term *Termination) Animate() {
 				/* step our frames */
 				pathLen := len(anEntity.Shape[anEntity.ShapePath])
 				if anEntity.frame >= (pathLen - 1) {
-					if (anEntity.frame != -1) {
+					if anEntity.frame != -1 {
 						// second loop
 						if anEntity.DeathOnLastFrame {
 							anEntity.Die()
@@ -268,9 +279,9 @@ func (term *Termination) Animate() {
 			termDefaultColor, termDefaultColorOk := colorForRune(term.DefaultColor)
 			entityDefaultColor, entityDefaultColorOk := colorForRune(anEntity.DefaultColor)
 			var defaultColor termbox.Attribute
-			if (entityDefaultColorOk) {
+			if entityDefaultColorOk {
 				defaultColor = entityDefaultColor
-			} else if (termDefaultColorOk) {
+			} else if termDefaultColorOk {
 				defaultColor = termDefaultColor
 			} else {
 				panic(fmt.Sprintf("No Default Color defined - Term %v and Entity %v are invalid", termDefaultColor, entityDefaultColor))
@@ -278,7 +289,7 @@ func (term *Termination) Animate() {
 
 			ignoreWhitespace := true
 			for _, char := range drawData {
-				j+=1
+				j += 1
 				color := defaultColor
 
 				/* figure out color */
@@ -286,7 +297,7 @@ func (term *Termination) Animate() {
 					term.debug("isColored")
 					if colorDataLength > i {
 						maskColor, new := colorForRune(colorData[i])
-						if (new) {
+						if new {
 							color = maskColor
 							term.debug("Selected Color: %v", color)
 						}
@@ -294,7 +305,7 @@ func (term *Termination) Animate() {
 				}
 				i += 1
 
-				if (char != term.TransparencyChar) {
+				if char != term.TransparencyChar {
 					if ignoreWhitespace {
 						if char != ' ' {
 							ignoreWhitespace = false
@@ -310,7 +321,7 @@ func (term *Termination) Animate() {
 					height += 1
 
 					// we only take the largest width
-					if (j > width) {
+					if j > width {
 						width = j
 					}
 					j = 0
@@ -344,12 +355,12 @@ func (term *Termination) Animate() {
 					visible = false
 				}
 				// we have to be visible first
-				if ! anEntity._visible {
+				if !anEntity._visible {
 					term.debug("Its not visible! %v\n", visible)
 					anEntity._visible = visible
 				} else {
 					//are we off-screen yet?
-					if ! visible {
+					if !visible {
 						term.debug("kill it")
 						anEntity.Die()
 					}
@@ -380,7 +391,7 @@ func (term *Termination) Animate() {
 
 func (term *Termination) detectCollisions(entity *Entity) {
 	results := term.rt.SearchIntersect(entity.Bounds())
-	if (len(results) > 1) {
+	if len(results) > 1 {
 		//fmt.Printf("\n\ncollision")
 	}
 	//fmt.Printf("\n%v",len(results))

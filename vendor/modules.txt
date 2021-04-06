@@ -1,6 +1,3 @@
-# github.com/ansoni/termination v0.0.0-20190107171503-2ca8fc1115fc
-## explicit
-github.com/ansoni/termination
 # github.com/dhconnelly/rtreego v1.0.0
 ## explicit
 github.com/dhconnelly/rtreego

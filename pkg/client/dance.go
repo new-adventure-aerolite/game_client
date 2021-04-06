@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"time"
 
-	"github.com/ansoni/termination"
 	"github.com/nsf/termbox-go"
 )
 
@@ -32,7 +31,7 @@ var (
 		"ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXyg5KDkpX18gICAgICAgIF9fL15cL15cX18NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgL28gbyAgIFwvXyAgICAgX19cX1xfL1xfL18vXw0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcX19fLCAgIFwvXyAgIF9cLicgICAgICAgJy4vXyAgICAgIF8vXF8NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGAtLS1gXCAgXC9fIF9cLyAgICAgICAgICAgXC9fICAgX3wuJ18vDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcICBcL19cLyAgICAgIC8gICAgICBcL18gIHwvIC8NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcICBgLScgICAgICB8ICAgICAgICAnO186JyAvDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgL3wgICAgICAgICAgXCAgICAgIFwgICAgIC4nDQogICAgICAgICAgICAgICAgICAoPictJykgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIG8vXy8gICB8LF9fXy4tYCcsICAgIC9gJy0tLWANCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgL19fXy9gICAgICAgIC9fX19fLw==",
 	}
 
-	kirbyShape = termination.Shape{
+	kirbyShape = Shape{
 		"default": []string{}}
 )
 
@@ -43,54 +42,33 @@ func init() {
 	}
 }
 
-type KirbyData struct {
-	GotoX int
-	GotoY int
-}
-
-func kirbyMovement(t *termination.Termination, e *termination.Entity, position termination.Position) termination.Position {
-	data, _ := e.Data.(KirbyData)
-	if data.GotoX < position.X {
-		position.X -= 1
-	} else if data.GotoX > position.X {
-		position.X += 1
-	}
-
-	if data.GotoY < position.Y {
-		position.Y -= 1
-	} else if data.GotoY > position.Y {
-		position.Y += 1
-	}
-	return position
-}
-
 func Hadouken() {
-	term := termination.New()
-	term.FramesPerSecond = 8
-	kirby := term.NewEntity(termination.Position{X: 20, Y: 20, Z: 0})
+	term := New()
+	term.FramesPerSecond = 20
+	kirby := term.NewEntity(Position{X: 20, Y: 20, Z: 0})
 	kirby.Shape = kirbyShape
-	kirby.MovementCallback = kirbyMovement
-	kirby.Data = KirbyData{GotoX: 20, GotoY: 20}
-	go term.Animate()
+	termbox.SetInputMode(termbox.InputEsc)
 
-	termbox.SetInputMode(termbox.InputEsc | termbox.InputMouse)
-
-	// create a channel to get exit signal from keyboard
-	exitC := make(chan bool)
+	quit := make(chan bool)
 	go func(quit chan bool) {
-		switch ev := termbox.PollEvent(); ev.Type {
+		ev := termbox.PollEvent()
+		switch ev.Type {
 		case termbox.EventKey:
-			if ev.Key == termbox.KeyEsc || ev.Key == termbox.KeyCtrlC {
-				term.Close()
-				exitC <- true
+			if ev.Key == termbox.KeyEsc {
+				close(quit)
 			}
 		}
-	}(exitC)
+	}(quit)
 
-	select {
-	case <-exitC:
-		term.Close()
-	case <-time.After(time.Duration(5 * time.Second)):
-		term.Close()
-	}
+	go func() {
+		defer term.Close()
+		select {
+		case <-quit:
+			return
+		case <-time.After(time.Duration(5 * time.Second)):
+			return
+		}
+	}()
+
+	term.Animate()
 }
