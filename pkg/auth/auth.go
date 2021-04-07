@@ -113,21 +113,21 @@ func RequestToken(passcode string) (string, int, error) {
 	return tokenJson.Token, token.StatusCode, err
 }
 
-func LoadSession(token string) (*SessionViewResponse, error) {
+func LoadSession(token string) (*SessionViewResponse, int, error) {
 	url := fmt.Sprintf("%s/session", Url)
 	resBody, err := SendRequest("GET", url, token, "")
 
 	if err != nil {
-		return nil, err
+		return nil, resBody.StatusCode, err
 	}
 
 	object := SessionViewResponse{}
 	err = json.Unmarshal(resBody.Body, &object)
 	if err != nil {
-		return nil, err
+		return nil, resBody.StatusCode, err
 	}
 
-	return &object, err
+	return &object, resBody.StatusCode, err
 }
 
 func RequestHeros(token string) ([]types.Hero, error) {

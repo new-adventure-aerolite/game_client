@@ -175,12 +175,16 @@ Reset:
 			return
 		}
 	}
-	sessionView, err = auth.LoadSession(token)
+	sessionView, statusCode, err = auth.LoadSession(token)
 	if sessionView == nil || err != nil {
 		color.Error.Println("An error occured while load session !!!!", err)
 		return
 	}
-
+	if statusCode == 401 {
+		color.Error.Println("*****Unauthorized occured while request token !!!!", statusCode)
+		SetToken("")
+		goto Reset
+	}
 	if len(sessionView.Hero) == 0 || sessionView.Hero["name"] == nil {
 		// calling  get hero list api
 		heros, err := auth.RequestHeros(token)
@@ -274,9 +278,13 @@ Reset:
 				}
 				currentlevel1 += 1
 				// here LoadSession in order to get boss info when hero goes into next level
-				session1, err := auth.LoadSession(token)
+				session1, statusCode1, err := auth.LoadSession(token)
 				if session1 == nil || err != nil {
 					color.Error.Println("An error occured while load seesion !!!!", err)
+					return
+				}
+				if statusCode1 == 401 {
+					color.Error.Println("Unauthorized occured while request token !!!!", statusCode1)
 					return
 				}
 				// update bossName
