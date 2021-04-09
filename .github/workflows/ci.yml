@@ -1,0 +1,67 @@
+on:
+  push:
+    branch:
+    - 'ci-test'
+
+name: Upload Release Asset Game Client
+
+jobs:
+  release:
+    name: Create Github Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: create release
+        id: create_release
+        uses: fregante/release-with-changelog@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag: ${{ github.ref }}
+          draft: false
+          prerelease: false
+          exclude: '^Meta'
+          commit-template: '- {hash} {title} {url} '
+          template: |
+            {commits}
+            {range}
+
+  build:
+    name: Upload Release Assets for ${{ matrix.os }}
+    needs: [release]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: game-client
+            asset_name: game-client-linux-amd64
+          - os: windows-latest
+            artifact_name: game-client.exe
+            asset_name: game-client-windows-amd64.exe
+          - os: macos-latest
+            artifact_name: game-client
+            asset_name: game-client-darwin-amd64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+            go-version: 1.15
+
+      - name: Build
+        run: go build .
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{ matrix.artifact_name }}
+          asset_name: ${{ matrix.asset_name }}
+          tag: ${{ github.ref }}
+          overwrite: true
+        
