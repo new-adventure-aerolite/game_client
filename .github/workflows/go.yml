@@ -14,14 +14,15 @@ jobs:
         uses: actions/checkout@v2
       - name: create release
         id: create_release
-        uses: actions/create-release@v1
+        uses: fregante/release-with-changelog@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
+          tag: ${{ github.ref }}
+          commit-template: '- {hash} {title} {url}'
+          template: |
+            {commits}
+            {range}
 
   build:
     name: Upload Release Assets for ${{ matrix.os }}
