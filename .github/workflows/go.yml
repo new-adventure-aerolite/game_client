@@ -15,9 +15,8 @@ jobs:
       - name: create release
         id: create_release
         uses: fregante/release-with-changelog@v3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref }}
           commit-template: '- {hash} {title} {url}'
           template: |
