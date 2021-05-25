@@ -1,0 +1,63 @@
+name: Create Or Delete CI Branch
+on:
+  push:
+    branches:
+      - "add-create-pr"
+
+env:
+  KUSTOMIZATION_DIR: "config/k8s/base"
+  AZURE_KUSTOMIZATION_DIR: "config/azure/base"
+
+jobs:
+  parser:
+    name: Update Yaml
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+          token: ${{ secrets.GH_API_TOKEN }}
+      - name: Configure git for private modules
+        env:
+          GITHUB_API_TOKEN: ${{ secrets.GH_API_TOKEN }}
+        run: git config --global url."https://x:${GITHUB_API_TOKEN}@github.com".insteadOf "https://github.com"
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.x' # Version range or exact version of a Python version to use, using SemVer's version range syntax
+          architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specifie
+      - name: Install pyyaml
+        run: |
+          python3 -m pip install pyyaml
+      # automatically create pull request and merge into main
+      - name: (Automatically) Create Pull Request
+        uses: repo-sync/pull-request@v2
+        id: pr_number
+        with:
+          source_branch: "ci-release"
+          destination_branch: "main"
+          pr_title: "chore(release): UPM-216 ci release for update substrate image tag"
+          pr_body: "release for test......"
+          pr_label: "automerge"
+          github_token: ${{ secrets.GH_API_TOKEN }}
+      - name: DELETE branch protection
+        run: |
+          curl  -X DELETE -H "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ secrets.GH_API_TOKEN }}" 'https://api.github.com/repos/new-adventure-aerolite/game_client/branches/main/protection/required_pull_request_reviews'
+      - name: (Automatically) Merge Pull Request
+        uses: "pascalgn/automerge-action@v0.14.1"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GH_API_TOKEN }}"
+          MERGE_LABELS: "automerge"
+          MERGE_REMOVE_LABELS: "automerge"
+          MERGE_METHOD: "squash"
+          MERGE_COMMIT_MESSAGE: "update substrate image tag"
+          MERGE_DELETE_BRANCH: "true"
+          MERGE_FORKS: "false"
+          MERGE_RETRIES: "6"
+          MERGE_RETRY_SLEEP: "10000"
+          UPDATE_LABELS: ""
+          UPDATE_METHOD: "rebase"
+          PULL_REQUEST: "${{ steps.pr_number.outputs.pr_number}}"
+      - name: PATCH branch protection
+        run: |
+          curl  -X PATCH -H "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ secrets.GH_API_TOKEN }}" 'https://api.github.com/repos/new-adventure-aerolite/game_client/branches/main/protection/required_pull_request_reviews' -d '{"dismiss_stale_reviews":true, "require_code_owner_reviews": false, "required_approving_review_count":1}'
