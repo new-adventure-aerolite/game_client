@@ -1,6 +1,5 @@
 # game_client
 
-
 ## Install
 
 ```
